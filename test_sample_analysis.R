@@ -17,9 +17,3 @@ Y1 <- as.matrix(Y1)
 mu <- getm(Y1)
 
 print(mu)
-
-
-
-
-
-
