@@ -28,7 +28,8 @@ sourceCpp("logstepper_logL.cpp")
 subsample <- matrix(NA, M * 1e4, 8)
 
 for (s in 1:M) {
-  fcsFile <- dir(paste(directory,patients[s],sep=''))[2]
+  setwd(paste(directory,patients[s],sep=''))
+  fcsFile <- dir()[2]
   subset <- read.FCS(fcsFile, transformation="linearize")
   c1<-which(colnames(subset@exprs)=="FITC-A")
   Y1 <- subset@exprs[,c1:(c1+7)]
@@ -65,7 +66,8 @@ while (convergence > convergence_threshold) {
   logL <- 0
   
   for (s in 1:M) {
-    fcsFile <- dir(paste(directory,patients[s],sep=''))[2]
+    setwd(paste(directory,patients[s],sep=''))
+    fcsFile <- dir()[2]
     subset <- read.FCS(fcsFile, transformation="linearize")
     c1<-which(colnames(subset@exprs)=="FITC-A")
     Y1 <- subset@exprs[,c1:(c1+7)]
