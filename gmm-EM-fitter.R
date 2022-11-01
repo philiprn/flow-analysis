@@ -25,7 +25,7 @@ sourceCpp("logstepper_logL.cpp")
 ################################################################################
 # Create subsample
 
-subsample <- matrix(NA, 450000, 8)
+subsample <- matrix(NA, M * 1e4, 8)
 
 for (s in 1:M) {
   fcsFile <- dir(paste(directory,patients[s],sep=''))[2]
