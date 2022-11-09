@@ -1,0 +1,16 @@
+name: renv
+channels:
+ - conda-forge
+ - bioconda
+ - defaults
+dependencies:
+ - python=3.9
+ - pip
+ - r-base=4.1
+ - r-rgdal
+ - r-cairo
+ - r-gert
+ - r-devtools
+ - gcc
+ - cmake
+ - cxx-compiler
