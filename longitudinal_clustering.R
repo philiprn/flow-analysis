@@ -86,97 +86,47 @@ readFile <- function(filename) {
 
 setwd("/net/beegfs/cfg/projects/mrd_mfc/H132_MRD")
 
-patients<-c()
-for (i in 1:length(dir())) {
-  sam<-dir()[i]
-  if (length(grep("H132",sam)) != 1) {
-    if (nchar(unlist(strsplit(sam," "))[2])==4){
-      patients<-c(patients,unlist(strsplit(sam," "))[2])
-    }
-  }
-}
+tfiles<-read.csv("tfiles.csv")
 
-patients<-unique(patients)
-cat(length(patients),"patients",'\n')
+N<-dim(tfiles)[1]
 
-cases<-0
-for (i in 1:length(patients)) {
-  denovo<-FALSE
-  datesamples<-c()
-  for (j in 1:length(dir())) {
-    sam<-dir()[j]
-    if (length(grep("H132",sam)) != 1) {
-      if (nchar(unlist(strsplit(sam," "))[2])==4){
-        if (unlist(strsplit(sam," "))[2] == patients[i]){
-          if ((length(grep("BM",sam))==1) & (length(grep("P1",sam))==1)){
-            if (length(grep("De Novo",sam)) == 1){
-              denovo<-TRUE
-            } else {
-              datesamples<-c(datesamples,sam)
-            }
-          }
-        } 
-      }
-    }
-  }
-  # Get number of cases
-  if (length(datesamples) > 0){
-    if ((length(datesamples) > 1) & denovo) {
-      cases<-cases+1
-    }
-  }
-}
-
-cat(cases,"patients with 4 timepoints",'\n')
-N <- cases
+cat('Anlysing',N,"patients",'\n')
 
 T0 <- matrix(NA, K, N)
 T1 <- matrix(NA, K, N)
 T2 <- matrix(NA, K, N)
 T3 <- matrix(NA, K, N)
 
-for (i in 1:length(patients)) {
-  counter <- 1
-  tempdates<-c()
-  datesamples<-c()
+for (i in 1:N) {
   temp<-matrix(NA, K, 3)
-  for (j in 1:dim(direc)[1]) {
+  for (j in 1:length(dir())) {
     sam<-dir()[j]
-    if (length(grep("H132",sam)) != 1) {
-      if (nchar(unlist(strsplit(sam," "))[2])==4){
-        if (unlist(strsplit(sam," "))[2] == patients[i]){
-          if ((length(grep("BM",sam))==1) & (length(grep("P1",sam))==1)){
-            if (length(grep("De Novo",sam)) == 1){
-              ## Cluster sample #########################################
-              Y1<-readFile(sam)
-              dataClusters <- getClusters(Y1, tot_weights, means, Sigmas)
-              for (k in 1:K) {
-                T0[k,i] <- length(dataClusters[which(dataClusters == k)]) / length(dataClusters)
-              }
-            } else {
-              datesamples<-c(datesamples,sam)
-              tempdates<-c(tempdates,unlist(strsplit(sam," "))[3])
-              ## Cluster sample ########################################
-              Y1<-readFile(sam)
-              dataClusters <- getClusters(Y1, tot_weights, means, Sigmas)
-              for (k in 1:K) {
-                temp[k,counter] <- length(dataClusters[which(dataClusters == k)]) / length(dataClusters)
-              }
-              counter <- counter + 1
+    if (sam == tfiles[i,1]){
+      ## Cluster sample #########################################
+      Y1<-readFile(sam)
+      dataClusters <- getClusters(Y1, tot_weights, means, Sigmas)
+      for (k in 1:K) {
+        T0[k,i] <- length(dataClusters[which(dataClusters == k)]) / length(dataClusters)
+      }
+      for (q in 1:3) {
+        for (m in (j-25):(j+25)) {
+          sam<-dir()[m]
+          if (sam == tfiles[i,q+1]){
+            ## Cluster sample #########################################
+            Y1<-readFile(sam)
+            dataClusters <- getClusters(Y1, tot_weights, means, Sigmas)
+            for (k in 1:K) {
+              temp[k,q] <- length(dataClusters[which(dataClusters == k)]) / length(dataClusters)
             }
+            break
           }
-        } 
+        }
       }
     }
   }
-  # Sort samples by dates
-  if (length(tempdates) > 0){
-    tempdates<-as.Date(tempdates,format = "%d-%m-%Y")
-    chrono<-order(tempdates)
-    T1[,i] <- temp[,chrono[1]]
-    T2[,i] <- temp[,chrono[2]]
-    T3[,i] <- temp[,chrono[3]]
-  }
+  T1[,i] <- temp[,1]
+  T2[,i] <- temp[,2]
+  T3[,i] <- temp[,3]
 }
 
 ################################################################################
