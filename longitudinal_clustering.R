@@ -6,7 +6,7 @@ library(PeacoQC)
 
 ################################################################################
 # Load GMM
-setwd("/net/beegfs/scratch/prutten/results/run06/")
+setwd("path/to/results/run06/")
 
 K<-30
 p<-8
@@ -84,55 +84,45 @@ readFile <- function(filename) {
 
 ################################################################################
 
-setwd("/net/beegfs/cfg/projects/mrd_mfc/H132_MRD")
+setwd("/path/to/H132_MRD")
 
-tfiles<-read.csv("tfiles.csv")
+tfiles<-read.csv("~/tfiles.csv")
 
 N<-dim(tfiles)[1]
 
-cat('Anlysing',N,"patients",'\n')
+cat("Anlysing", N, "patients",format(Sys.time(),usetz=TRUE),'\n')
 
 T0 <- matrix(NA, K, N)
 T1 <- matrix(NA, K, N)
 T2 <- matrix(NA, K, N)
 T3 <- matrix(NA, K, N)
 
+temp<-matrix(NA, K, 4)
+
 for (i in 1:N) {
-  temp<-matrix(NA, K, 3)
-  for (j in 1:length(dir())) {
-    sam<-dir()[j]
-    if (sam == tfiles[i,1]){
-      ## Cluster sample #########################################
-      Y1<-readFile(sam)
+  for (j in 1:4) {
+    sam <- tfiles[i,j]
+    ## Cluster sample #########################################
+    Y1<-try(readFile(sam),silent=TRUE)
+    if (is.matrix(Y1)){
       dataClusters <- getClusters(Y1, tot_weights, means, Sigmas)
       for (k in 1:K) {
-        T0[k,i] <- length(dataClusters[which(dataClusters == k)]) / length(dataClusters)
+        temp[k,j] <- length(dataClusters[which(dataClusters == k)]) / length(dataClusters)
       }
-      for (q in 1:3) {
-        for (m in (j-25):(j+25)) {
-          sam<-dir()[m]
-          if (sam == tfiles[i,q+1]){
-            ## Cluster sample #########################################
-            Y1<-readFile(sam)
-            dataClusters <- getClusters(Y1, tot_weights, means, Sigmas)
-            for (k in 1:K) {
-              temp[k,q] <- length(dataClusters[which(dataClusters == k)]) / length(dataClusters)
-            }
-            break
-          }
-        }
-      }
+    } else {
+      cat("Patient",i,"sample file",sam,'\n')
     }
   }
-  T1[,i] <- temp[,1]
-  T2[,i] <- temp[,2]
-  T3[,i] <- temp[,3]
+  T0[,i] <- temp[,1]
+  T1[,i] <- temp[,2]
+  T2[,i] <- temp[,3]
+  T3[,i] <- temp[,4]
 }
 
 ################################################################################
 # Store results
 
-setwd("/net/beegfs/scratch/prutten/results/long01")
+setwd("/path/to/results/long01")
 
 write.csv(T0, "denovo-clustering-4-tp.csv", row.names=FALSE)
 write.csv(T1, "T1-clustering-4-tp.csv", row.names=FALSE)
