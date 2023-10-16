@@ -13,15 +13,16 @@ K <- strtoi(K)
 ################################################################################
 # SOURCE function
 
-sourceCpp("ompstepper.cpp")
+sourceCpp("logstepper_logL_v2.cpp")
 
 ################################################################################
 # DATA
 
-patients <- read.csv("P5samples100_01.csv")[,1]
-setwd("/net/beegfs/scratch/prutten/H132_P5denovo")
+setwd("/net/beegfs/scratch/prutten/H132_denovo")
 #patients <- dir()
-#patients <- patients[c(1:2,sample(c(3:195,200),80,replace=FALSE),196:199,201:214)]
+patients <- c(dir()[sample(1:211,105,replace=FALSE)],
+	      dir()[sample(212:232,11,replace=FALSE)])
+
 M <- length(patients)
 
 ################################################################################
@@ -36,7 +37,7 @@ cat("Model",K,"start building subsample from",Msub,"out of",M,"samples.","\n")
 
 for (s in 1:Msub) {
   fcsFile <- patientsubsample[s]
-  Y1 <- fread(file=fcsFile)
+  Y1 <- fread(fcsFile)
   Y1 <- as.matrix(Y1)
   
   a <- (s - 1) * 1e4 + 1
@@ -76,12 +77,12 @@ while (convergence > convergence_threshold) {
   
   for (s in 1:M) {
     fcsFile <- patients[s]
-    Y1 <- fread(file=fcsFile)
+    Y1 <- fread(fcsFile)
     Y1 <- as.matrix(Y1)
-    #if (nrow(Y1) > 5e5) {
-    #  set.seed(1)
-    #  Y1 <- Y1[sample(1:nrow(Y1),5e5,replace=FALSE),]
-    #}
+    if (nrow(Y1) > 5e5) {
+      set.seed(1)
+      Y1 <- Y1[sample(1:nrow(Y1),5e5,replace=FALSE),]
+    }
     A0_ <- A0[s,]
     
     logL <- logL + logstep(Y1, weights[s,], means, Sigmas, A0_, A1, A2)
@@ -92,7 +93,7 @@ while (convergence > convergence_threshold) {
   }
   
   if (iter > 1) {
-    convergence <- (logL_old - logL) / logL_old
+    convergence <- abs((logL - logL_old) / logL_old)
   }
   
   logL_old <- logL
@@ -107,12 +108,12 @@ while (convergence > convergence_threshold) {
 
 ################################################################################
 # STORE RESULTS
-setwd("/net/beegfs/scratch/prutten/results/run12")
+setwd("/net/beegfs/scratch/prutten/results/run14")
 
-write.csv(weights, paste("weights-H132-P5-100-samples-",toString(K),".csv",sep=''),row.names=FALSE)
-write.csv(means, paste("means-H132-P5-100-samples-",toString(K),".csv",sep=''),row.names=FALSE)
-write.csv(Sigmas, paste("covs-H132-P5-100-samples-",toString(K),".csv",sep=''),row.names=FALSE)
+write.csv(weights, paste("weights-H132-P1-232-samples-",toString(K),".csv",sep=''),row.names=FALSE)
+write.csv(means, paste("means-H132-P1-232-samples-",toString(K),".csv",sep=''),row.names=FALSE)
+write.csv(Sigmas, paste("covs-H132-P1-232-samples-",toString(K),".csv",sep=''),row.names=FALSE)
 
-
+write.csv(patients,"trainset-H132-P1-232-samples.csv",row.names=FALSE)
 
 
